@@ -23,9 +23,10 @@ const uint32_t AUDIO_RATE = 16000;
 // Later mouth frames are scheduled from sample position, not packet arrival.
 const uint32_t AUDIO_OUTPUT_LATENCY_MS = 32;
 const uint8_t MOUTH_EVENT_QUEUE_SIZE = 128;
-// Timing-isolation test: draw neutral eyes once and give the mouth exclusive
-// use of the display during audio playback.
-const bool STATIC_EYES = true;
+// First-stage idle animation. Blinking is independent of the expression
+// system, and pauses while speech is playing so mouth timing keeps priority.
+const bool ENABLE_RANDOM_BLINKS = true;
+const bool ENABLE_AUTOMATIC_EXPRESSIONS = false;
 
 Adafruit_ST7789 tft(TFT_CS, TFT_DC, TFT_MOSI, TFT_SCLK, TFT_RST);
 GFXcanvas16 eyeCanvas(200, 90);
@@ -310,11 +311,11 @@ void drawMouth(int frame) {
 float currentBlinkScalar(unsigned long now) {
   if (!blinking) return 1.0f;
   unsigned long elapsed = now - blinkStarted;
-  if (elapsed < 100) return 1.0f - elapsed / 100.0f;
-  if (elapsed < 250) return 0.0f;
-  if (elapsed < 380) return (elapsed - 250) / 130.0f;
+  // A two-frame blink suits this SPI panel better than several transitional
+  // frames: close cleanly, hold just long enough to read, then reopen.
+  if (elapsed < 220) return 0.0f;
   blinking = false;
-  nextBlink = now + random(4000, 7001);
+  nextBlink = now + random(4500, 8501);
   return 1.0f;
 }
 
@@ -506,10 +507,10 @@ void setup() {
   Serial.println(WiFi.localIP());
   if (MDNS.begin("jin")) Serial.println("Audio address: jin.local:3333");
   xTaskCreatePinnedToCore(audioNetworkTask, "jin-audio", 8192, nullptr, 2, nullptr, 0);
-  nextBlink = millis() + 3000;
+  nextBlink = millis() + random(2000, 3501);
   nextExpressionAt = millis() + 600;
-  Serial.println("Jin V5 animated expression prototype ready");
-  Serial.println("Expressions and blinks now run automatically");
+  Serial.println("Hermes ESP32 avatar ready");
+  Serial.println("Random synchronized blinking enabled; automatic expressions disabled");
   Serial.println("Press BOOT to choose another expression immediately");
   Serial.println("Serial: L=listening, P=processing, N=neutral, A=auto");
 }
@@ -527,7 +528,7 @@ void loop() {
 
   if (audioStreaming != wasStreaming) {
     wasStreaming = audioStreaming;
-    if (!STATIC_EYES) {
+    if (ENABLE_AUTOMATIC_EXPRESSIONS) {
       if (wasStreaming) {
         autoMode = false;
         startExpression(SPEAKING_DEMO);
@@ -540,7 +541,7 @@ void loop() {
 
   while (Serial.available()) {
     char command = (char)Serial.read();
-    if (!STATIC_EYES) applySerialCommand(command);
+    applySerialCommand(command);
   }
 
   bool buttonState = digitalRead(NEXT_BUTTON);
@@ -553,11 +554,11 @@ void loop() {
     }
   }
 
-  if (autoMode && now >= nextExpressionAt) {
+  if (ENABLE_AUTOMATIC_EXPRESSIONS && autoMode && now >= nextExpressionAt) {
     startExpression(pickRandomExpression());
   }
 
-  if (!STATIC_EYES && !blinking && now >= nextBlink) {
+  if (ENABLE_RANDOM_BLINKS && !audioStreaming && !blinking && now >= nextBlink) {
     blinking = true;
     blinkStarted = now;
   }
@@ -573,11 +574,14 @@ void loop() {
     drawMouth(0);
   }
 
-  // The speaking eyes are held steady. Refresh them less often while audio is
-  // active, leaving most display time available for the mouth meter.
-  unsigned long eyeInterval = audioStreaming ? 100 : 35;
-  if (!STATIC_EYES && now - lastEyeRender >= eyeInterval) {
-    renderEyes(currentShape, currentBlinkScalar(now));
+  // Repaint the eye region only while a blink is moving. The final blink frame
+  // redraws fully open eyes, then the display stays untouched until the next
+  // blink. Speech therefore keeps exclusive use of the mouth region.
+  bool blinkFrameActive = blinking;
+  float blinkScalar = currentBlinkScalar(now);
+  bool blinkJustFinished = blinkFrameActive && !blinking;
+  if (blinkFrameActive && (blinkJustFinished || now - lastEyeRender >= 30)) {
+    renderEyes(currentShape, blinkScalar);
     lastEyeRender = now;
   }
   delay(audioStreaming ? 8 : 35);
