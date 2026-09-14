@@ -1,0 +1,35 @@
+name: jin-esp32-bridge
+version: 2.0.0
+description: "Route Hermes TTS to the Jin ESP32-S3 avatar over TCP. Adds /jin on|off|status, suppresses Mac playback while the device speaks, and respells the name 'Jin' so Edge says it correctly. Configured through plugin settings."
+author: "Scott + Jin"
+license: MIT
+tags: [tts, audio, esp32, hardware]
+config_schema:
+  host:
+    type: str
+    default: jin.local
+    description: "Hostname or IP of the ESP32 avatar endpoint. mDNS names can be flaky; the plugin remembers the last address that worked."
+  host_ip:
+    type: str
+    default: ""
+    description: "Optional. Pin the device IP to skip name resolution entirely. Leave empty to use host, with the last reachable address as automatic fallback."
+  port:
+    type: int
+    default: 3333
+    description: "TCP port the firmware listens on."
+  esp32_output:
+    type: bool
+    default: true
+    description: "Send TTS to the ESP32. Toggled at runtime with /jin on and /jin off."
+  suppress_local:
+    type: bool
+    default: true
+    description: "Mute Mac playback while the device speaks, so you never hear two voices."
+  mac_fallback:
+    type: bool
+    default: true
+    description: "Play on the Mac when the device cannot be reached before audio begins."
+  jin_spelling:
+    type: str
+    default: Jinn
+    description: "Respelling substituted for the token 'Jin' in TTS input only, so Edge says /dZIn/ rather than 'Jean'. Set to an empty string to disable."
