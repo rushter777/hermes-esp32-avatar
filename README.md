@@ -19,8 +19,6 @@ The repository folder has a generic name, while the current working plugin and a
 - `firmware/hermes_esp32_avatar/` — current ESP32-S3 firmware
 - `hermes-plugin/jin-esp32-bridge/` — exact working Hermes plugin snapshot
 - `docs/HARDWARE.md` — tested parts and GPIO wiring
-- `experiments/face-prototypes/` — earlier display and expression sketches
-- `experiments/specifications/` — design notes used during the avatar experiments
 
 ## Firmware setup
 
