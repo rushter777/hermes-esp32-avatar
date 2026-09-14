@@ -14,6 +14,19 @@ Working prototype:
 
 The repository folder has a generic name, while the current working plugin and avatar retain their prototype name, Jin. Generalizing command names, hostname, artwork, and pronunciation behavior is planned before a public release.
 
+## Hardware
+
+The prototype uses the Freenove ESP32-S3 Basic Starter Kit plus a display, an I2S amplifier, and a 3 W, 4 ohm speaker. The Freenove kit includes the GPIO extension board, breadboard, jumper wires, and other basic components needed for assembly.
+
+> **Affiliate disclosure:** As an Amazon Associate I earn from qualifying purchases. Amazonのアソシエイトとして、rushter777は適格販売により収入を得ています。
+
+- [Freenove ESP32-S3 Camera Board Basic Starter Kit](https://amzn.to/4A8Cczn) *(affiliate link; tested kit)*
+- [Xicoolee 2-inch 240x320 ST7789V SPI display](https://amzn.to/3UQ9XoW) *(affiliate link; compatible alternative to the tested GMT020-027P display)*
+- [SATUY MAX98357A I2S 3 W mono amplifier, four-pack](https://amzn.to/4cF1FGv) *(affiliate link; tested amplifier type)*
+- [3 W, 4 ohm speakers with 2.54 mm connectors, two-pack](https://amzn.to/3UQXVvx) *(affiliate link; tested speaker specification)*
+
+Amazon OneLink may redirect these links to a matching product or search results in the visitor's local Amazon marketplace. See [docs/HARDWARE.md](docs/HARDWARE.md) for the exact tested parts, electrical connections, and compatibility notes.
+
 ## Layout
 
 - `firmware/hermes_esp32_avatar/` — current ESP32-S3 firmware
@@ -29,10 +42,8 @@ The repository folder has a generic name, while the current working plugin and a
 
 Private Wi-Fi credentials are excluded by `.gitignore`.
 
-## Before publishing
+## Roadmap
 
 - Generalize the plugin identity and `/jin` command while retaining optional avatar-name pronunciation aliases.
 - Replace fixed GPIO and display settings with a documented configuration section.
-- Add reproducible plugin and firmware tests.
 - Confirm licenses and attribution for Hermes Agent and all included libraries.
-- Add a project license chosen by the repository owner.
